@@ -5,11 +5,11 @@ import {
   Settings, 
   BookOpen, 
   FileText, 
+  TrendingUp,
+  AlertTriangle,
   ChevronLeft,
-  LayoutDashboard,
-  Printer,
-  Eraser,
-  ListTodo
+  ArrowRightLeft,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,8 +20,9 @@ import { ManageTeachers } from './ManageTeachers';
 import { SchoolSettings } from './SchoolSettings';
 import { ManageClasses } from './ManageClasses';
 import { ReportGenerator } from './ReportGenerator';
+import { ClassReport } from './ClassReport';
+import { DataMigration } from './DataMigration';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
 
 interface SchoolAdminDashboardProps {
   school: School;
@@ -30,7 +31,7 @@ interface SchoolAdminDashboardProps {
   onUpdateStudents: (students: Student[]) => void;
 }
 
-type DashboardTab = 'dashboard' | 'students' | 'classes' | 'teachers' | 'subjects' | 'bulk-pdf' | 'clear-data' | 'settings';
+type DashboardTab = 'overview' | 'students' | 'teachers' | 'settings' | 'classes' | 'reports' | 'class-reports' | 'migration';
 
 export const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ 
   school, 
@@ -38,15 +39,17 @@ export const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({
   onBack,
   onUpdateStudents
 }) => {
-  const [activeTab, setActiveTab] = React.useState<DashboardTab>('dashboard');
+  const [activeTab, setActiveTab] = React.useState<DashboardTab>('overview');
+
+  const studentsNeedingSupport = students.filter(s => s.averageGrade < 70);
 
   const menuItems = [
-    { label: 'Manage Students', icon: Users, color: 'text-blue-500', tab: 'students' },
-    { label: 'Manage Classes', icon: ListTodo, color: 'text-indigo-500', tab: 'classes' },
-    { label: 'Manage Teachers', icon: GraduationCap, color: 'text-purple-500', tab: 'teachers' },
-    { label: 'Manage Subjects', icon: BookOpen, color: 'text-emerald-500', tab: 'subjects' },
-    { label: 'Bulk PDF', icon: Printer, color: 'text-orange-500', tab: 'bulk-pdf' },
-    { label: 'Clear Data', icon: Eraser, color: 'text-rose-500', tab: 'clear-data' },
+    { label: 'Manage Students', icon: TrendingUp, color: 'text-pink-500', tab: 'students' },
+    { label: 'Manage Teachers', icon: Users, color: 'text-purple-500', tab: 'teachers' },
+    { label: 'Subjects', icon: BookOpen, color: 'text-emerald-500', tab: 'classes' },
+    { label: 'Generate Report', icon: FileText, color: 'text-orange-500', tab: 'reports' },
+    { label: 'Add Class Report', icon: Download, color: 'text-blue-500', tab: 'class-reports' },
+    { label: 'Add Data Migration', icon: ArrowRightLeft, color: 'text-indigo-500', tab: 'migration' },
     { label: 'Settings', icon: Settings, color: 'text-slate-500', tab: 'settings' },
   ];
 
@@ -60,52 +63,69 @@ export const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({
     onUpdateStudents(newStudents);
   };
 
-  const handleClearData = () => {
-    if (confirm('Are you absolutely sure you want to clear all student performance data? This cannot be undone.')) {
-      const clearedStudents = students.map(s => ({
-        ...s,
-        detailedScores: [],
-        subjectGrades: [],
-        averageGrade: 0
-      }));
-      onUpdateStudents(clearedStudents);
-      toast.success('All academic records cleared successfully.');
-    }
-  };
-
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case 'overview':
         return (
           <div className="space-y-8">
             <div className="grid gap-6 md:grid-cols-3">
               <Card className="bg-primary/5 border-primary/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Total Students</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase">Total Students</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-black">{school.studentCount}</div>
+                  <div className="text-3xl font-bold">{school.studentCount}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Average Grade</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase">Average Grade</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-black">82%</div>
+                  <div className="text-3xl font-bold">82%</div>
                 </CardContent>
               </Card>
-              <Card className="bg-primary/5 border-primary/20">
+              <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-widest">School Code</CardTitle>
+                  <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 uppercase">Attention Needed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-black text-primary">{school.code}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-3xl font-bold text-red-700 dark:text-red-400">
+                      {studentsNeedingSupport.length}
+                    </div>
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
             <AnalyticsCharts students={students} />
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Students Requiring Support (Grade &lt; 70%)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {studentsNeedingSupport.map(student => (
+                    <div key={student.id} className="flex items-center justify-between rounded-lg border p-4 bg-muted/30">
+                      <div className="flex items-center gap-3">
+                        <img src={student.photo} alt={student.name} className="h-10 w-10 rounded-full" />
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-xs text-muted-foreground">{student.grade}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-red-600">{student.averageGrade}%</p>
+                        <p className="text-xs text-muted-foreground">Average Score</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
       case 'students':
@@ -116,34 +136,23 @@ export const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({
             onDelete={handleDeleteStudent}
           />
         );
+      case 'teachers':
+        return <ManageTeachers />;
+      case 'settings':
+        return <SchoolSettings school={school} />;
       case 'classes':
-      case 'subjects':
         return (
           <ManageClasses 
             students={students}
             onUpdateStudents={onUpdateStudents}
           />
         );
-      case 'teachers':
-        return <ManageTeachers />;
-      case 'settings':
-        return <SchoolSettings school={school} />;
-      case 'bulk-pdf':
+      case 'reports':
         return <ReportGenerator students={students} />;
-      case 'clear-data':
-        return (
-          <Card className="border-destructive/20 bg-destructive/5">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone: Clear Academic Data</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">This action will reset all scores, positions, and grades for all students in this school.</p>
-              <Button variant="destructive" size="lg" onClick={handleClearData} className="font-bold">
-                Reset All Academic Data
-              </Button>
-            </CardContent>
-          </Card>
-        );
+      case 'class-reports':
+        return <ClassReport />;
+      case 'migration':
+        return <DataMigration />;
       default:
         return null;
     }
@@ -151,49 +160,45 @@ export const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full border hover:bg-muted">
+          <Button variant="ghost" size="icon" onClick={onBack}>
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-white p-2 shadow-sm border flex items-center justify-center overflow-hidden">
-              <img src={school.logo} alt={school.name} className="h-full w-full object-contain" />
-            </div>
+            <img src={school.logo} alt={school.name} className="h-12 w-12 rounded-lg object-contain" />
             <div>
-              <h1 className="text-2xl font-black tracking-tight">{school.name}</h1>
-              <p className="text-sm font-bold text-primary">Portal Administrator</p>
+              <h1 className="text-2xl font-bold">{school.name}</h1>
+              <p className="text-sm text-muted-foreground">{school.location} \\u2022 School Admin Panel</p>
             </div>
           </div>
         </div>
         
         <Button 
-          variant={activeTab === 'dashboard' ? 'default' : 'outline'}
-          className="font-bold gap-2 shadow-sm"
-          onClick={() => setActiveTab('dashboard')}
+          variant={activeTab === 'overview' ? 'default' : 'outline'}
+          onClick={() => setActiveTab('overview')}
         >
-          <LayoutDashboard className="h-4 w-4" />
-          Main Dashboard
+          Dashboard Overview
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
         {menuItems.map((item, idx) => (
           <Button
             key={idx}
             variant={activeTab === item.tab ? 'default' : 'outline'}
-            className={`flex-1 min-w-[120px] h-20 flex-col gap-1 transition-all ${
-              activeTab === item.tab ? 'shadow-md scale-105' : 'hover:bg-muted'
+            className={`flex h-auto flex-col gap-2 p-4 transition-all hover:border-primary ${
+              activeTab === item.tab ? 'ring-2 ring-primary ring-offset-2' : 'hover:bg-primary/5'
             }`}
             onClick={() => setActiveTab(item.tab as DashboardTab)}
           >
-            <item.icon className={`h-5 w-5 ${activeTab === item.tab ? 'text-primary-foreground' : item.color}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+            <item.icon className={`h-6 w-6 ${activeTab === item.tab ? 'text-primary-foreground' : item.color}`} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
           </Button>
         ))}
       </div>
 
-      <div className="pt-4 bg-white/50 dark:bg-slate-900/50 rounded-3xl p-6 border shadow-sm">
+      <div className="pt-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

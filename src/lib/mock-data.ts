@@ -8,7 +8,6 @@ export const SCHOOLS: School[] = [
     location: 'New York, NY',
     studentCount: 1250,
     teacherCount: 85,
-    code: 'HORIZON-01',
     address: '123 Education Way, New York, NY 10001',
     email: 'admin@horizon.edu',
     phone: '+1 (212) 555-0123',
@@ -22,7 +21,6 @@ export const SCHOOLS: School[] = [
     location: 'San Francisco, CA',
     studentCount: 850,
     teacherCount: 62,
-    code: 'TECH-EX',
   },
   {
     id: '3',
@@ -31,7 +29,6 @@ export const SCHOOLS: School[] = [
     location: 'Seattle, WA',
     studentCount: 450,
     teacherCount: 30,
-    code: 'GREEN-WOOD',
   },
 ];
 
@@ -59,16 +56,6 @@ export const STUDENTS: Student[] = [
       { subject: 'History', grade: 88 },
       { subject: 'English', grade: 87 },
     ],
-    detailedScores: [
-      {
-        subjectId: 'sub1',
-        test1: 25,
-        groupWork: 18,
-        test2: 24,
-        projectWork: 19,
-        examScore: 88,
-      }
-    ]
   },
   {
     id: 's2',
@@ -91,16 +78,6 @@ export const STUDENTS: Student[] = [
       { subject: 'History', grade: 68 },
       { subject: 'English', grade: 63 },
     ],
-    detailedScores: [
-      {
-        subjectId: 'sub1',
-        test1: 15,
-        groupWork: 10,
-        test2: 12,
-        projectWork: 13,
-        examScore: 55,
-      }
-    ]
   },
   {
     id: 's3',

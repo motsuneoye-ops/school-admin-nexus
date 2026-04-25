@@ -1,36 +1,29 @@
-# Plan: School Management System Refinement
+# Score Entry Implementation Plan
 
-## 1. Data Model Updates (`src/lib/types.ts`)
-- Update `School` interface to include `code`.
-- Create `DetailedScore` interface to hold the new fields:
-  - `test1`, `groupWork`, `test2`, `projectWork`, `examScore`
-  - Computed fields (for UI/storage): `totalClassScore`, `classScore50`, `examScore50`, `overallTotal`, `position`, `grade`, `remark`.
-- Update `Student` interface to store these detailed scores per subject.
+## 1. Create Score Entry Component
+- Create `src/components/ScoreEntry.tsx`.
+- This component will:
+  - Take `subject`, `students`, and `onUpdateStudents` as props.
+  - Display a table of students in the grade matching the subject.
+  - Provide input fields for entering scores.
+  - Calculate and update the student's `averageGrade` and `subjectGrades`.
+  - Provide a "Back" button to return to the subject list.
 
-## 2. Mock Data Updates (`src/lib/mock-data.ts`)
-- Add `code` to existing schools.
-- Add some sample `detailedScores` to students.
+## 2. Update Manage Classes Component
+- Modify `src/components/ManageClasses.tsx`:
+  - Add props: `students: Student[]`, `onUpdateStudents: (students: Student[]) => void`.
+  - Add state `selectedSubjectForScores: Subject | null`.
+  - If `selectedSubjectForScores` is null, show the existing subject management UI.
+  - If `selectedSubjectForScores` is NOT null, render the `ScoreEntry` component.
+  - Add an "Enter Scores" button to each subject card.
 
-## 3. App Entry Flow (`src/App.tsx`)
-- Implement a search screen as the initial view.
-- Add "Enter School Code" input and "Search" button.
-- If code matches, show the school card.
-- Clicking the school card enters the `SchoolAdminDashboard`.
+## 3. Update School Admin Dashboard
+- Modify `src/components/SchoolAdminDashboard.tsx`:
+  - Pass the `students` and `onUpdateStudents` props to the `ManageClasses` component within the `renderContent` function.
+  - Change the label of the "Manage Classes" menu item to "Subjects" to match user terminology.
 
-## 4. Super Admin Enhancements (`src/components/SuperAdminDashboard.tsx`)
-- Add school code generation logic when a school is created.
-- Display school codes in the list.
-
-## 5. School Admin Dashboard Refinement (`src/components/SchoolAdminDashboard.tsx`)
-- Update tabs: 'Manage Students', 'Manage Classes', 'Manage Teachers', 'Manage Subjects', 'Bulk PDF', 'Clear Data', 'Settings'.
-- Add basic implementations for 'Clear Data' (reset scores) and 'Bulk PDF' (placeholder).
-
-## 6. Detailed Subject Score Table (`src/components/ScoreEntry.tsx`)
-- Transform the score entry into a comprehensive table with 15 columns:
-  - Serial Number, Picture, Name, Test 1 (30), Group Work (20), Test 2 (30), Project Work (20), Total Class Score (100), 50% of Class Score (A), Exam Score (100), 50% of Exam Score (B), Overall Total (A+B), Position, Grade, Remark.
-- Implement real-time calculations for all dependent fields.
-- Implement sorting/ranking for "Position".
-- Implement grading logic.
-
-## 7. Navigation Refinement (`src/components/ManageClasses.tsx`)
-- Ensure clicking a subject in a class opens the updated `ScoreEntry` view.
+## 4. Verification
+- Verify that clicking "Subjects" shows the subject list.
+- Verify that clicking "Enter Scores" on a subject card opens the score entry table.
+- Verify that entering scores and saving updates the student data and average grades.
+- Call `validate_build` to ensure no TypeScript or build errors.
